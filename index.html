@@ -1,1379 +1,400 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Music Business Schedule C Tracker</title>
   <style>
     :root {
-      --bg: #17191c;
-      --fg: #eceff1;
-      --mut: #9aa5ad;
-      --line: #333a40;
-      --card: #22262b;
-      --input-bg: #1b1e22;
-      --acc: #7aa7e6;
-      --acc-fg: #11161d;
-      --grn: #6fcf97;
-      --red: #f08c8c;
-      --warn: #f2c94c;
-      color-scheme: dark;
-      box-sizing: border-box;
-      padding-top: env(safe-area-inset-top, 0px);
-      padding-bottom: env(safe-area-inset-bottom, 0px);
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface-muted: #f1f5f9;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --primary: #1d4ed8;
+      --primary-hover: #1e40af;
+      --primary-soft: #eff6ff;
+      --success: #15803d;
+      --success-soft: #dcfce7;
+      --warning: #b45309;
+      --warning-soft: #fef3c7;
+      --danger: #b91c1c;
+      --danger-soft: #fee2e2;
+      --radius: 10px;
+      --shadow: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
     }
 
-    *, *::before, *::after {
-      box-sizing: inherit;
-    }
-
-    html {
-      scroll-padding-top: 24px;
-      scroll-padding-bottom: 45vh;
-    }
-
+    * { box-sizing: border-box; }
     body {
       margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       background: var(--bg);
-      color: var(--fg);
-      font: 14px/1.45 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-      padding-bottom: 45vh;
+      color: var(--text);
+      line-height: 1.5;
     }
 
-    main {
-      max-width: 1040px;
+    /* Header */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .header-inner {
+      max-width: 1200px;
       margin: 0 auto;
-      padding: 20px 16px;
-    }
-
-    h1 {
-      font-size: 20px;
-      font-weight: 700;
-      margin: 0 0 4px;
-      letter-spacing: -0.01em;
-    }
-
-    h2 {
-      font-size: 16px;
-      font-weight: 700;
-      margin: 22px 0 8px;
-    }
-
-    .mut {
-      color: var(--mut);
-      font-size: 12px;
-    }
-
-    /* Navigation Tabs */
-    nav {
       display: flex;
-      gap: 6px;
-      margin: 14px 0 16px;
       flex-wrap: wrap;
-    }
-
-    button, select, input {
-      font: inherit;
-      color: var(--fg);
-      background: var(--input-bg);
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      padding: 7px 10px;
-      transition: border-color 0.15s, background-color 0.15s;
-    }
-
-    input:focus, select:focus {
-      outline: none;
-      border-color: var(--acc);
-    }
-
-    button {
-      cursor: pointer;
-      background: var(--card);
-    }
-
-    button:hover {
-      border-color: #4b5560;
-    }
-
-    button.on, button.pri {
-      background: var(--acc);
-      color: var(--acc-fg);
-      border-color: var(--acc);
-      font-weight: 600;
-    }
-
-    button.on:hover, button.pri:hover {
-      filter: brightness(1.06);
-    }
-
-    button.sm {
-      padding: 4px 9px;
-      font-size: 12px;
-    }
-
-    /* Inline Form Card */
-    .card-form {
-      background: var(--card);
-      border: 1px solid #2b3036;
-      border-radius: 8px;
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
       gap: 12px;
     }
+    .brand h1 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .brand p {
+      margin: 2px 0 0;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+    .header-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+    .sync-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--surface-muted);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+    .sync-badge.synced {
+      background: var(--success-soft);
+      color: var(--success);
+      border-color: #bbf7d0;
+    }
+    .sync-badge.syncing {
+      background: var(--warning-soft);
+      color: var(--warning);
+      border-color: #fde68a;
+    }
+    .sync-badge.error {
+      background: var(--danger-soft);
+      color: var(--danger);
+      border-color: #fecaca;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: currentColor;
+    }
 
-    .field {
+    select, input, textarea, button {
+      font-family: inherit;
+      font-size: 0.9rem;
+    }
+    select, input, textarea {
+      padding: 8px 11px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    select:focus, input:focus, textarea:focus {
+      border-color: var(--primary);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn:hover { background: var(--surface-muted); }
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-danger {
+      color: var(--danger);
+      border-color: #fecaca;
+      background: #fff;
+    }
+    .btn-danger:hover { background: var(--danger-soft); }
+    .btn-sm {
+      padding: 5px 10px;
+      font-size: 0.8rem;
+    }
+
+    /* Main Container & Tabs */
+    main {
+      max-width: 1200px;
+      margin: 24px auto;
+      padding: 0 24px 60px;
+    }
+    .tabs {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 24px;
+      padding-bottom: 2px;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      padding: 10px 16px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Cards & Grids */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+    }
+    .card-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .card-title {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      box-shadow: var(--shadow);
+    }
+    .kpi-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .kpi-value {
+      font-size: 1.55rem;
+      font-weight: 700;
+      margin-top: 6px;
+      font-variant-numeric: tabular-nums;
+    }
+    .kpi-sub {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    .text-success { color: var(--success); }
+    .text-danger { color: var(--danger); }
+    .text-primary { color: var(--primary); }
+
+    /* Forms */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 12px;
+      align-items: end;
+    }
+    .form-group {
       display: flex;
       flex-direction: column;
-      gap: 3px;
-      min-width: 0;
+      gap: 5px;
     }
-
-    .field-title {
-      font-size: 12.5px;
-      font-weight: 500;
-      color: #c5ced6;
-    }
-
-    .field small {
-      font-size: 11px;
-      color: var(--mut);
-      line-height: 1.3;
-      margin-bottom: 3px;
-    }
-
-    .file-box {
-      border: 1px solid var(--line);
-      background: var(--input-bg);
-      border-radius: 6px;
-      padding: 6px 8px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .file-box input[type="file"] {
-      border: 0;
-      padding: 0;
-      background: transparent;
-      font-size: 12px;
-      width: auto;
-      max-width: 100%;
-    }
-
-    .grid-4 {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
-      align-items: end;
-    }
-
-    .grid-6 {
-      display: grid;
-      grid-template-columns: repeat(6, minmax(0, 1fr));
-      gap: 10px;
-      align-items: end;
-    }
-
-    .grid-3 {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 10px;
-      align-items: end;
-    }
-
-    .row {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .between {
-      justify-content: space-between;
-    }
-
-    .hide {
-      display: none !important;
+    .form-group label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
     }
 
     /* Tables */
-    .scroll {
+    .table-wrap {
       overflow-x: auto;
-      margin-top: 8px;
     }
-
     table {
-      border-collapse: collapse;
       width: 100%;
-      min-width: 620px;
+      border-collapse: collapse;
+      font-size: 0.88rem;
     }
-
     th, td {
+      padding: 10px 12px;
       text-align: left;
-      padding: 9px 8px;
-      border-bottom: 1px solid var(--line);
-      vertical-align: middle;
+      border-bottom: 1px solid var(--border);
     }
-
     th {
-      font-size: 12px;
-      color: var(--mut);
+      background: var(--surface-muted);
+      font-weight: 600;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    tr:hover td { background: #f8fafc; }
+    .num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
       font-weight: 600;
     }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-income { background: var(--success-soft); color: var(--success); }
+    .badge-expense { background: var(--danger-soft); color: var(--danger); }
+    .badge-mileage { background: var(--primary-soft); color: var(--primary); }
 
-    td.n, th.n {
-      text-align: right;
+    .line-tag {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.78rem;
+      background: var(--surface-muted);
+      border: 1px solid var(--border);
+      padding: 2px 6px;
+      border-radius: 5px;
+      color: var(--text);
       white-space: nowrap;
     }
 
-    .tot td {
-      font-weight: 700;
-      background: var(--card);
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
     }
-
-    .inc {
-      color: var(--grn);
-      font-weight: 600;
+    .toolbar-left, .toolbar-right {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
     }
-
-    .exp {
-      color: var(--red);
-      font-weight: 600;
+    .empty-state {
+      text-align: center;
+      padding: 36px 16px;
+      color: var(--text-muted);
+      font-size: 0.92rem;
     }
-
-    /* Banner & Worksheet Helpers */
-    .banner {
-      background: var(--card);
-      border: 1px solid var(--line);
+    .notice-box {
+      background: var(--primary-soft);
+      border: 1px solid #bfdbfe;
+      color: #1e3a8a;
+      padding: 12px 16px;
       border-radius: 8px;
-      padding: 12px 14px;
-      margin: 12px 0;
-    }
-
-    .banner.warn {
-      border-color: rgba(242, 201, 76, 0.5);
-    }
-
-    .banner.ok {
-      border-color: rgba(111, 207, 151, 0.45);
-    }
-
-    .toast {
-      position: fixed;
-      top: 14px;
-      right: 14px;
-      background: var(--card);
-      color: var(--fg);
-      border: 1px solid var(--acc);
-      padding: 8px 14px;
-      border-radius: 6px;
-      font-size: 12.5px;
-      z-index: 999;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.2s;
-    }
-
-    .toast.show {
-      opacity: 1;
-    }
-
-    @media (max-width: 860px) {
-      .grid-4 {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-      .grid-6 {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-    }
-
-    @media (max-width: 640px) {
-      main {
-        padding: 12px;
-      }
-      input, select, button {
-        font-size: 16px;
-        padding: 9px 10px;
-      }
-      button.sm {
-        font-size: 13px;
-        padding: 6px 10px;
-      }
-      .grid-4, .grid-6, .grid-3 {
-        grid-template-columns: 1fr;
-      }
-      table {
-        min-width: 0;
-      }
-      #log table, #log tbody, #log tr, #log td {
-        display: block;
-        width: 100%;
-      }
-      #log thead {
-        display: none;
-      }
-      #log tr {
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        padding: 10px 12px;
-        margin: 8px 0;
-        background: var(--card);
-      }
-      #log td {
-        border: 0;
-        padding: 3px 0;
-        text-align: left !important;
-      }
-      #log td:empty {
-        display: none;
-      }
-      #rows td:nth-child(2) {
-        font-weight: 600;
-        font-size: 15px;
-      }
-      #rows td:nth-child(3)::before { content: "Category: "; color: var(--mut); }
-      #rows td:nth-child(4)::before { content: "Income: "; color: var(--mut); }
-      #rows td:nth-child(5)::before { content: "Expense: "; color: var(--mut); }
-      #rows td:nth-child(6)::before { content: "Miles: "; color: var(--mut); }
-      #rows td:last-child { padding-top: 8px; }
+      font-size: 0.85rem;
+      margin-bottom: 16px;
     }
   </style>
 </head>
 <body>
-  <div id="toast" class="toast"></div>
 
-  <main>
-    <h1>Music Business Schedule C Tracker</h1>
-    <div class="mut" id="status">Local browser storage — ready to deploy or share.</div>
-
-    <nav aria-label="Primary sections">
-      <button id="t-log" class="on" type="button">Transactions</button>
-      <button id="t-sum" type="button">Annual summary</button>
-      <button id="t-ttx" type="button">TurboTax worksheet</button>
-      <button id="t-ast" type="button">Asset log</button>
-      <button id="t-1099" type="button">1099s</button>
-    </nav>
-
-    <!-- TAB 1: TRANSACTIONS -->
-    <section id="log">
-      <form id="f" class="card-form">
-        <div class="field">
-          <span class="field-title">Receipt or 1099 photo (optional)</span>
-          <small>Take or choose a photo. A receipt becomes an expense and a 1099 becomes an income entry. The details are filled in below for you to check.</small>
-          <div class="file-box">
-            <input type="file" id="photo" accept="image/*">
-            <span class="mut" id="photoHint"></span>
-          </div>
-        </div>
-
-        <div class="grid-4">
-          <label class="field">
-            <span class="field-title">Date</span>
-            <small>Day you were paid, or paid the expense</small>
-            <input type="date" id="date" required>
-          </label>
-
-          <label class="field">
-            <span class="field-title">Type</span>
-            <small>Income = money received. Expense = money spent</small>
-            <select id="type">
-              <option value="inc">Income</option>
-              <option value="exp">Expense</option>
-            </select>
-          </label>
-
-          <label class="field">
-            <span class="field-title">Category</span>
-            <small>Matches TurboTax. Most lesson and gig income is Gross Receipts / Sales</small>
-            <select id="cat" required></select>
-          </label>
-
-          <label class="field">
-            <span class="field-title">Amount ($)</span>
-            <small>Full amount, no $ sign. Meals: enter the full cost</small>
-            <input type="number" id="amt" step="0.01" min="0" required>
-          </label>
-        </div>
-
-        <label class="field">
-          <span class="field-title">Description (business purpose)</span>
-          <small>What it was and why it is for the business, e.g. Guitar lesson - Sarah, or Strings for gigs</small>
-          <input type="text" id="desc" required>
-        </label>
-
-        <div class="grid-6">
-          <label class="field">
-            <span class="field-title">Business miles</span>
-            <small>Total business miles driven for this trip (round trip). Leave blank if none</small>
-            <input type="number" id="mi" step="0.1" min="0">
-          </label>
-
-          <label class="field">
-            <span class="field-title">Destination</span>
-            <small>Where you drove, e.g. Jazz Club Downtown</small>
-            <input type="text" id="dest">
-          </label>
-
-          <label class="field">
-            <span class="field-title">Drive purpose</span>
-            <small>Why you drove, e.g. Evening gig, or Student lesson</small>
-            <input type="text" id="why">
-          </label>
-
-          <label class="field">
-            <span class="field-title">Receipt #</span>
-            <small>Your own label to match a saved receipt, e.g. R001. Optional</small>
-            <input type="text" id="rc">
-          </label>
-
-          <label class="field">
-            <span class="field-title">Payment method</span>
-            <small>How it was paid or received. Optional</small>
-            <select id="pay">
-              <option value=""></option>
-              <option>Cash</option>
-              <option>Check</option>
-              <option>Credit card</option>
-              <option>Debit card</option>
-              <option>Venmo</option>
-              <option>Zelle</option>
-              <option>PayPal</option>
-              <option>ACH/Wire</option>
-              <option>Other</option>
-            </select>
-          </label>
-
-          <label class="field">
-            <span class="field-title">Client / payer</span>
-            <small>Who paid you (or who you paid). Most useful for cash and checks</small>
-            <input type="text" id="cl">
-          </label>
-        </div>
-
-        <div class="row">
-          <button class="pri" type="submit">Add entry</button>
-          <span class="mut">Year is taken from the date.</span>
-        </div>
-      </form>
-
-      <div class="row between" style="margin-top: 16px;">
-        <div class="row">
-          <label class="row" style="gap: 6px;">
-            <span>Year</span>
-            <select id="ylog"></select>
-          </label>
-          <button id="csv" type="button">Download CSV</button>
-        </div>
-        <div class="row">
-          <button id="exportJson" class="sm" type="button" title="Save a backup file to share or move devices">Export backup</button>
-          <button id="importJsonBtn" class="sm" type="button" title="Restore from a backup JSON file">Import backup</button>
-          <input type="file" id="importJsonFile" accept=".json,application/json" class="hide">
-        </div>
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <h1>Music Business Schedule C Tracker</h1>
+      <p>Shared cloud ledger • Synced to Google Sheets for Schedule C & TurboTax</p>
+    </div>
+    <div class="header-controls">
+      <div id="syncStatus" class="sync-badge">
+        <span class="dot"></span>
+        <span id="syncText">Connecting...</span>
       </div>
+      <label for="taxYearSelect" style="font-size:0.82rem;font-weight:600;color:var(--text-muted);">Tax Year:</label>
+      <select id="taxYearSelect">
+        <option value="2026" selected>2026 ($0.725/mi)</option>
+        <option value="2025">2025 ($0.70/mi)</option>
+        <option value="2024">2024 ($0.67/mi)</option>
+        <option value="ALL">All Years</option>
+      </select>
+      <button class="btn btn-sm" id="refreshBtn" title="Pull latest from Google Sheet">↻ Refresh</button>
+    </div>
+  </div>
+</header>
 
-      <div class="scroll">
-        <table>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Description</th>
-              <th>Category</th>
-              <th class="n">Income</th>
-              <th class="n">Expense</th>
-              <th class="n">Miles</th>
-              <th>Details</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="rows"></tbody>
-        </table>
+<main>
+  <nav class="tabs" role="tablist">
+    <button class="tab-btn active" data-tab="transactions">1. Transactions</button>
+    <button class="tab-btn" data-tab="summary">2. Annual Summary</button>
+    <button class="tab-btn" data-tab="turbotax">3. TurboTax Worksheet</button>
+    <button class="tab-btn" data-tab="assets">4. Asset Log</button>
+    <button class="tab-btn" data-tab="forms1099">5. 1099s</button>
+  </nav>
+
+  <!-- TAB 1: TRANSACTIONS -->
+  <section id="tab-transactions" class="tab-panel active">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title" id="txFormTitle">Log New Entry</h2>
+        <button class="btn btn-sm" id="cancelEditTxBtn" style="display:none;">Cancel Edit</button>
       </div>
-    </section>
-
-    <!-- TAB 2: ANNUAL SUMMARY -->
-    <section id="sum" class="hide">
-      <div class="row">
-        <label class="row" style="gap: 6px;">
-          <span>Tax year</span>
-          <select id="ysum"></select>
-        </label>
-      </div>
-
-      <h2>Income (Part I)</h2>
-      <div class="scroll"><table id="tinc"></table></div>
-
-      <h2>Expenses (Part II) — enter each into TurboTax</h2>
-      <div class="scroll"><table id="texp"></table></div>
-
-      <h2>Net profit</h2>
-      <div class="scroll"><table id="tnet"></table></div>
-
-      <h2>Mileage (Line 9, standard method)</h2>
-      <form id="fm" class="card-form">
-        <div class="grid-3">
-          <label class="field">
-            <span class="field-title">Standard rate ($/mile)</span>
-            <small>IRS rate per business mile for that tax year</small>
-            <input type="number" id="rate" step="0.001" min="0">
-          </label>
-          <label class="field">
-            <span class="field-title">Total home sq ft</span>
-            <small>Total size of your home</small>
-            <input type="number" id="home" min="0">
-          </label>
-          <label class="field">
-            <span class="field-title">Studio / office sq ft</span>
-            <small>Space used only for your music work</small>
-            <input type="number" id="off" min="0">
-          </label>
+      <form id="txForm" class="form-grid">
+        <input type="hidden" id="txId" />
+        <div class="form-group">
+          <label for="txDate">Date</label>
+          <input type="date" id="txDate" required />
         </div>
-      </form>
-      <div class="scroll"><table id="tmi"></table></div>
-      <p class="mut">Check the IRS mileage rate for each tax year and update it above. Meals are entered at full cost; TurboTax applies the 50% limit. Equipment purchases may belong under Depreciation (see Asset log). This tool is a record-keeping aid, not tax advice.</p>
-    </section>
-
-    <!-- TAB 3: TURBOTAX WORKSHEET -->
-    <section id="ttx" class="hide">
-      <div class="row between">
-        <label class="row" style="gap: 6px;">
-          <span>Tax year</span>
-          <select id="yttx"></select>
-        </label>
-        <span class="mut">Click Copy on any line to paste directly into TurboTax Self-Employed / Home &amp; Business.</span>
-      </div>
-
-      <div class="banner">
-        <strong>1. Business Profile Setup</strong>
-        <div class="mut" style="margin-top: 4px;">
-          Principal Business / Profession: <strong>Musician / Music Instructor / Performing Artist</strong> &middot;
-          Business Code (NAICS): <strong>711510</strong> (Independent Artists, Writers, and Performers) &middot;
-          Accounting Method: <strong>Cash</strong>
+        <div class="form-group">
+          <label for="txType">Entry Type</label>
+          <select id="txType" required>
+            <option value="Expense">Expense</option>
+            <option value="Income">Income (Gigs / Royalties / Lessons)</option>
+            <option value="Mileage">Business Mileage (Miles)</option>
+          </select>
         </div>
-      </div>
-
-      <h2>2. Income &amp; 1099 Check</h2>
-      <div class="scroll"><table id="ttxInc"></table></div>
-
-      <h2>3. Business Expenses (Non-Zero Categories)</h2>
-      <div class="scroll"><table id="ttxExp"></table></div>
-
-      <h2>4. Vehicle, Meals &amp; Home Office Adjustments</h2>
-      <div class="scroll"><table id="ttxAdj"></table></div>
-    </section>
-
-    <!-- TAB 4: ASSET LOG -->
-    <section id="ast" class="hide">
-      <form id="fast" class="card-form">
-        <div class="grid-4">
-          <label class="field">
-            <span class="field-title">Purchase date</span>
-            <small>Date placed in service for music business</small>
-            <input type="date" id="a-date" required>
-          </label>
-          <label class="field">
-            <span class="field-title">Equipment / asset description</span>
-            <small>e.g. Fender Stratocaster, Neumann U87, MacBook Pro</small>
-            <input type="text" id="a-desc" required>
-          </label>
-          <label class="field">
-            <span class="field-title">Asset category</span>
-            <small>Type of gear or property</small>
-            <select id="a-cat">
-              <option>Musical Instruments</option>
-              <option>Audio &amp; Recording Gear</option>
-              <option>Computers &amp; Studio Tech</option>
-              <option>Cases, Stands &amp; Furniture</option>
-              <option>Other Equipment</option>
-            </select>
-          </label>
-          <label class="field">
-            <span class="field-title">Purchase cost ($)</span>
-            <small>Total price including tax &amp; shipping</small>
-            <input type="number" id="a-cost" step="0.01" min="0" required>
-          </label>
-        </div>
-
-        <div class="grid-3">
-          <label class="field">
-            <span class="field-title">Business use (%)</span>
-            <small>100% if used exclusively for music work</small>
-            <input type="number" id="a-pct" min="1" max="100" value="100" required>
-          </label>
-          <label class="field">
-            <span class="field-title">Tax treatment</span>
-            <small>Items &le; $2,500 often qualify for De Minimis Safe Harbor</small>
-            <select id="a-method">
-              <option>De Minimis Safe Harbor (&le; $2,500)</option>
-              <option>Section 179 Full Deduction</option>
-              <option>5-Year MACRS Depreciation</option>
-              <option>7-Year MACRS Depreciation</option>
-            </select>
-          </label>
-          <label class="field">
-            <span class="field-title">Serial # / Notes</span>
-            <small>Optional serial number or vendor</small>
-            <input type="text" id="a-note">
-          </label>
-        </div>
-
-        <div class="row">
-          <button class="pri" type="submit">Add asset</button>
-          <span class="mut">Track depreciable gear separately from everyday supplies.</span>
-        </div>
-      </form>
-
-      <div class="scroll" style="margin-top: 14px;">
-        <table>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Equipment</th>
-              <th>Category</th>
-              <th class="n">Cost</th>
-              <th class="n">Bus. %</th>
-              <th class="n">Deductible Basis</th>
-              <th>Treatment / Notes</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="astRows"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- TAB 5: 1099s -->
-    <section id="f1099" class="hide">
-      <form id="f99" class="card-form">
-        <div class="grid-4">
-          <label class="field">
-            <span class="field-title">Tax year</span>
-            <small>Year shown on the 1099 form</small>
-            <input type="number" id="n-year" min="2000" max="2099" required>
-          </label>
-          <label class="field">
-            <span class="field-title">Form type</span>
-            <small>1099-NEC for gigs/teaching, 1099-K for Venmo/PayPal/Stripe</small>
-            <select id="n-type">
-              <option>1099-NEC</option>
-              <option>1099-K</option>
-              <option>1099-MISC</option>
-            </select>
-          </label>
-          <label class="field">
-            <span class="field-title">Payer / Venue / Platform</span>
-            <small>Name of school, venue, agency, or payment processor</small>
-            <input type="text" id="n-payer" required>
-          </label>
-          <label class="field">
-            <span class="field-title">Box 1 / Gross amount ($)</span>
-            <small>Total nonemployee compensation or gross payment reported</small>
-            <input type="number" id="n-amt" step="0.01" min="0" required>
-          </label>
-        </div>
-
-        <div class="grid-3">
-          <label class="field">
-            <span class="field-title">Federal tax withheld ($)</span>
-            <small>Box 4 backup withholding, usually $0.00</small>
-            <input type="number" id="n-wh" step="0.01" min="0" value="0">
-          </label>
-          <label class="field">
-            <span class="field-title">Payer TIN (last 4 digits)</span>
-            <small>Optional reference</small>
-            <input type="text" id="n-tin" maxlength="12">
-          </label>
-          <label class="field">
-            <span class="field-title">Notes</span>
-            <small>Optional memo (e.g. Included in Gross Receipts)</small>
-            <input type="text" id="n-note">
-          </label>
-        </div>
-
-        <div class="row">
-          <button class="pri" type="submit">Add 1099</button>
-          <span class="mut">1099 amounts should already be included inside your Gross Receipts / Sales in Transactions.</span>
-        </div>
-      </form>
-
-      <div id="reconBanner" class="banner" style="margin-top: 14px;"></div>
-
-      <div class="scroll">
-        <table>
-          <thead>
-            <tr>
-              <th>Year</th>
-              <th>Form</th>
-              <th>Payer</th>
-              <th class="n">Gross Amount</th>
-              <th class="n">Fed. Withheld</th>
-              <th>Details</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="nRows"></tbody>
-        </table>
-      </div>
-    </section>
-  </main>
-
-  <script>
-    const EXP = [
-      ["Advertising", "8"],
-      ["Car and Truck", "9"],
-      ["Commissions and Fees", "10"],
-      ["Contract Labor", "11"],
-      ["Depletion", "12"],
-      ["Depreciation", "13"],
-      ["Employee Benefit Programs", "14"],
-      ["Insurance", "15"],
-      ["Mortgage Interest", "16a"],
-      ["Other Interest", "16b"],
-      ["Legal and Professional", "17"],
-      ["Office Expense", "18"],
-      ["Pension/Profit-Sharing", "19"],
-      ["Rent - Vehicles/Equipment", "20a"],
-      ["Rent - Other", "20b"],
-      ["Repairs and Maintenance", "21"],
-      ["Supplies", "22"],
-      ["Taxes and Licenses", "23"],
-      ["Travel", "24a"],
-      ["Meals (50%)", "24b"],
-      ["Utilities", "25"],
-      ["Wages", "26"],
-      ["Home Office", "30"],
-      ["Other Expense", "48"]
-    ];
-
-    const INC = [
-      ["Gross Receipts / Sales", "1"],
-      ["Returns and Allowances", "2"],
-      ["Other Income", "6"]
-    ];
-
-    const $ = s => document.querySelector(s);
-    const money = n => (n < 0 ? "-" : "") + "$" + Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    const LS = "sc_tracker_v2";
-    const LEGACY_LS = "sc_tracker_v1";
-    const thisYear = new Date().getFullYear();
-
-    let state = {
-      rows: [],
-      assets: [],
-      forms1099: [],
-      cfg: { rate: 0.70, home: 0, off: 0 }
-    };
-
-    function el(tag, txt, cls) {
-      const e = document.createElement(tag);
-      if (txt != null) e.textContent = txt;
-      if (cls) e.className = cls;
-      return e;
-    }
-
-    function showToast(msg) {
-      const t = $("#toast");
-      t.textContent = msg;
-      t.classList.add("show");
-      clearTimeout(t._timer);
-      t._timer = setTimeout(() => t.classList.remove("show"), 2200);
-    }
-
-    function copyText(text) {
-      const ta = document.createElement("textarea");
-      ta.value = text;
-      ta.style.position = "fixed";
-      ta.style.opacity = "0";
-      document.body.appendChild(ta);
-      ta.select();
-      try {
-        document.execCommand("copy");
-        showToast("Copied " + text);
-      } catch (e) {
-        showToast("Copy failed");
-      }
-      document.body.removeChild(ta);
-    }
-
-    function saveState() {
-      try {
-        localStorage.setItem(LS, JSON.stringify(state));
-      } catch (e) {
-        showToast("Storage full — export a backup JSON");
-      }
-    }
-
-    function loadState() {
-      try {
-        const raw = localStorage.getItem(LS);
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          state.rows = parsed.rows || [];
-          state.assets = parsed.assets || [];
-          state.forms1099 = parsed.forms1099 || [];
-          state.cfg = { ...state.cfg, ...(parsed.cfg || {}) };
-          return;
-        }
-        const legacy = localStorage.getItem(LEGACY_LS);
-        if (legacy) {
-          const parsed = JSON.parse(legacy);
-          state.rows = parsed.rows || [];
-          state.cfg = { ...state.cfg, ...(parsed.cfg || {}) };
-          saveState();
-        }
-      } catch (e) {}
-    }
-
-    function fillCats() {
-      const list = $("#type").value === "inc" ? INC : EXP;
-      const s = $("#cat");
-      s.textContent = "";
-      list.forEach(c => {
-        const o = el("option", c[0]);
-        o.value = c[0];
-        s.appendChild(o);
-      });
-    }
-
-    function years() {
-      const ys = new Set([thisYear, thisYear - 1]);
-      state.rows.forEach(r => { if (r.date) ys.add(+r.date.slice(0, 4)); });
-      state.forms1099.forEach(f => { if (f.year) ys.add(+f.year); });
-      return [...ys].sort((a, b) => b - a);
-    }
-
-    function fillYears() {
-      const ys = years();
-      ["#ylog", "#ysum", "#yttx"].forEach(id => {
-        const s = $(id);
-        const cur = s.value;
-        s.textContent = "";
-        ys.forEach(y => {
-          const o = el("option", y);
-          o.value = y;
-          s.appendChild(o);
-        });
-        if (cur && ys.includes(+cur)) s.value = cur;
-      });
-    }
-
-    function syncYearSelectors(val) {
-      ["#ylog", "#ysum", "#yttx"].forEach(id => {
-        const s = $(id);
-        if ([...s.options].some(o => o.value === String(val))) {
-          s.value = String(val);
-        }
-      });
-      render();
-    }
-
-    function setCfgInputs() {
-      $("#rate").value = state.cfg.rate;
-      $("#home").value = state.cfg.home;
-      $("#off").value = state.cfg.off;
-    }
-
-    function render() {
-      fillYears();
-      renderLog();
-      renderSummary();
-      renderWorksheet();
-      renderAssets();
-      render1099s();
-    }
-
-    /* TAB 1: TRANSACTIONS */
-    function renderLog() {
-      const y = +$("#ylog").value || thisYear;
-      const tb = $("#rows");
-      tb.textContent = "";
-
-      const filtered = state.rows
-        .filter(r => +r.date.slice(0, 4) === y)
-        .sort((a, b) => b.date.localeCompare(a.date));
-
-      if (!filtered.length) {
-        const tr = el("tr");
-        const td = el("td", "No entries for " + y + " yet. Add an income or expense entry above.", "mut");
-        td.colSpan = 8;
-        tr.appendChild(td);
-        tb.appendChild(tr);
-        return;
-      }
-
-      filtered.forEach(r => {
-        const tr = el("tr");
-        const details = [
-          r.dest,
-          r.why,
-          r.rc && ("Receipt " + r.rc),
-          r.pay,
-          r.cl,
-          r.photoName && ("Photo: " + r.photoName)
-        ].filter(Boolean).join(" · ");
-
-        tr.append(
-          el("td", r.date),
-          el("td", r.desc),
-          el("td", r.cat),
-          el("td", r.type === "inc" ? money(r.amt) : "", "n inc"),
-          el("td", r.type === "exp" ? money(r.amt) : "", "n exp"),
-          el("td", r.mi ? String(r.mi) : "", "n"),
-          el("td", details)
-        );
-
-        const tdAct = el("td");
-        const delBtn = el("button", "Delete");
-        delBtn.type = "button";
-        delBtn.onclick = () => {
-          state.rows = state.rows.filter(x => x.id !== r.id);
-          saveState();
-          render();
-          showToast("Entry deleted");
-        };
-        tdAct.appendChild(delBtn);
-        tr.appendChild(tdAct);
-        tb.appendChild(tr);
-      });
-    }
-
-    /* TAB 2: ANNUAL SUMMARY */
-    function sumBy(y, type, cat) {
-      return state.rows
-        .filter(r => +r.date.slice(0, 4) === y && r.type === type && r.cat === cat)
-        .reduce((a, r) => a + r.amt, 0);
-    }
-
-    function buildSimpleTable(t, head, body, tot) {
-      t.textContent = "";
-      const h = el("tr");
-      head.forEach((x, i) => h.append(el("th", x, i === 1 ? "n" : "")));
-      t.append(h);
-      body.concat(tot || []).forEach((r, k) => {
-        const tr = el("tr", null, tot && k >= body.length ? "tot" : "");
-        r.forEach((x, i) => tr.append(el("td", x, i === 1 ? "n" : "")));
-        t.append(tr);
-      });
-    }
-
-    function renderSummary() {
-      const y = +$("#ysum").value || thisYear;
-      const inc = INC.map(c => [c[0], money(sumBy(y, "inc", c[0])), "Line " + c[1]]);
-      const g = sumBy(y, "inc", INC[0][0]) - sumBy(y, "inc", INC[1][0]) + sumBy(y, "inc", INC[2][0]);
-      buildSimpleTable($("#tinc"), ["TurboTax category", "Total", "Schedule C"], inc, [["Gross income", money(g), "Line 7"]]);
-
-      let te = 0;
-      const ex = EXP.map(c => {
-        const v = sumBy(y, "exp", c[0]);
-        te += v;
-        return [c[0], money(v), "Line " + c[1]];
-      });
-      buildSimpleTable($("#texp"), ["TurboTax category", "Total", "Schedule C"], ex, [["Total expenses", money(te), "Line 28"]]);
-      buildSimpleTable($("#tnet"), ["", "Amount", "Schedule C"], [], [["Net profit (loss)", money(g - te), "Line 31"]]);
-
-      const mi = state.rows.filter(r => +r.date.slice(0, 4) === y).reduce((a, r) => a + (r.mi || 0), 0);
-      const pct = state.cfg.home > 0 ? Math.min(100, (state.cfg.off / state.cfg.home) * 100) : 0;
-      const ho = Math.min(state.cfg.off, 300) * 5;
-      buildSimpleTable($("#tmi"), ["Item", "Value", "Note"], [
-        ["Business miles (" + y + ")", mi.toLocaleString("en-US", { maximumFractionDigits: 1 }), "From transactions"],
-        ["Standard mileage deduction", money(mi * state.cfg.rate), "Car and Truck, Line 9"],
-        ["Business-use share of home", pct.toFixed(1) + "%", "Studio ÷ total sq ft"],
-        ["Simplified home office deduction", money(ho), "$5 per sq ft, up to 300 sq ft; Line 30"]
-      ]);
-    }
-
-    /* TAB 3: TURBOTAX WORKSHEET */
-    function renderWorksheet() {
-      const y = +$("#yttx").value || thisYear;
-      const grossSales = sumBy(y, "inc", "Gross Receipts / Sales");
-      const returns = sumBy(y, "inc", "Returns and Allowances");
-      const otherInc = sumBy(y, "inc", "Other Income");
-      const total1099 = state.forms1099.filter(f => +f.year === y).reduce((a, f) => a + (f.amt || 0), 0);
-
-      const makeCopyRow = (label, rawVal, formattedVal, note) => {
-        const tr = el("tr");
-        tr.append(el("td", label), el("td", formattedVal, "n"), el("td", note, "mut"));
-        const tdBtn = el("td", null, "n");
-        const b = el("button", "Copy", "sm");
-        b.type = "button";
-        b.onclick = () => copyText(String(rawVal));
-        tdBtn.appendChild(b);
-        tr.appendChild(tdBtn);
-        return tr;
-      };
-
-      const tInc = $("#ttxInc");
-      tInc.textContent = "";
-      const h1 = el("tr");
-      ["TurboTax Screen / Field", "Value", "Notes", ""].forEach((x, i) => h1.append(el("th", x, i === 1 ? "n" : "")));
-      tInc.appendChild(h1);
-      tInc.appendChild(makeCopyRow("Gross receipts or sales (Line 1)", grossSales.toFixed(2), money(grossSales), "Includes 1099-NEC, 1099-K, cash, checks & Venmo/Zelle"));
-      if (returns > 0) tInc.appendChild(makeCopyRow("Returns and allowances (Line 2)", returns.toFixed(2), money(returns), "Refunds issued to students/clients"));
-      if (otherInc > 0) tInc.appendChild(makeCopyRow("Other income (Line 6)", otherInc.toFixed(2), money(otherInc), "Grants, awards, or non-gig royalties"));
-      tInc.appendChild(makeCopyRow("Total 1099 forms logged (" + y + ")", total1099.toFixed(2), money(total1099), "Reference check against 1099s tab"));
-
-      const tExp = $("#ttxExp");
-      tExp.textContent = "";
-      const h2 = el("tr");
-      ["Schedule C Expense Category", "Amount", "TurboTax Line", ""].forEach((x, i) => h2.append(el("th", x, i === 1 ? "n" : "")));
-      tExp.appendChild(h2);
-
-      let hasExp = false;
-      EXP.forEach(c => {
-        const v = sumBy(y, "exp", c[0]);
-        if (v > 0) {
-          hasExp = true;
-          const note = c[0] === "Meals (50%)"
-            ? "Line " + c[1] + " — Enter full amount; TurboTax takes 50% (" + money(v * 0.5) + ")"
-            : "Schedule C Line " + c[1];
-          tExp.appendChild(makeCopyRow(c[0], v.toFixed(2), money(v), note));
-        }
-      });
-      if (!hasExp) {
-        const tr = el("tr");
-        const td = el("td", "No expenses recorded for " + y + ".", "mut");
-        td.colSpan = 4;
-        tr.appendChild(td);
-        tExp.appendChild(tr);
-      }
-
-      const mi = state.rows.filter(r => +r.date.slice(0, 4) === y).reduce((a, r) => a + (r.mi || 0), 0);
-      const ho = Math.min(state.cfg.off, 300) * 5;
-      const tAdj = $("#ttxAdj");
-      tAdj.textContent = "";
-      const h3 = el("tr");
-      ["Deduction Item", "Value", "Where to Enter in TurboTax", ""].forEach((x, i) => h3.append(el("th", x, i === 1 ? "n" : "")));
-      tAdj.appendChild(h3);
-      tAdj.appendChild(makeCopyRow("Business miles driven", mi.toFixed(1), mi.toLocaleString("en-US", { maximumFractionDigits: 1 }) + " mi", "Vehicle Expenses -> Standard Mileage (" + money(mi * state.cfg.rate) + " deduction)"));
-      tAdj.appendChild(makeCopyRow("Studio / office sq ft", String(state.cfg.off), state.cfg.off + " sq ft", "Home Office -> Simplified Method (" + money(ho) + " deduction)"));
-    }
-
-    /* TAB 4: ASSET LOG */
-    function renderAssets() {
-      const tb = $("#astRows");
-      tb.textContent = "";
-      if (!state.assets.length) {
-        const tr = el("tr");
-        const td = el("td", "No music equipment or depreciable assets logged yet.", "mut");
-        td.colSpan = 8;
-        tr.appendChild(td);
-        tb.appendChild(tr);
-        return;
-      }
-
-      let totalCost = 0;
-      let totalBasis = 0;
-      state.assets.slice().sort((a, b) => b.date.localeCompare(a.date)).forEach(a => {
-        const basis = a.cost * (a.pct / 100);
-        totalCost += a.cost;
-        totalBasis += basis;
-
-        const tr = el("tr");
-        tr.append(
-          el("td", a.date),
-          el("td", a.desc),
-          el("td", a.cat),
-          el("td", money(a.cost), "n"),
-          el("td", a.pct + "%", "n"),
-          el("td", money(basis), "n inc"),
-          el("td", [a.method, a.note].filter(Boolean).join(" · "))
-        );
-        const td = el("td");
-        const b = el("button", "Delete");
-        b.type = "button";
-        b.onclick = () => {
-          state.assets = state.assets.filter(x => x.id !== a.id);
-          saveState();
-          renderAssets();
-          showToast("Asset deleted");
-        };
-        td.appendChild(b);
-        tr.appendChild(td);
-        tb.appendChild(tr);
-      });
-
-      const tot = el("tr", null, "tot");
-      tot.append(
-        el("td", "Total"),
-        el("td", state.assets.length + " item(s)"),
-        el("td", ""),
-        el("td", money(totalCost), "n"),
-        el("td", ""),
-        el("td", money(totalBasis), "n"),
-        el("td", ""),
-        el("td", "")
-      );
-      tb.appendChild(tot);
-    }
-
-    /* TAB 5: 1099s */
-    function render1099s() {
-      const tb = $("#nRows");
-      tb.textContent = "";
-      const y = +$("#ylog").value || thisYear;
-      const formsForYear = state.forms1099.filter(f => +f.year === y);
-      const sum1099 = formsForYear.reduce((a, f) => a + f.amt, 0);
-      const grossSales = sumBy(y, "inc", "Gross Receipts / Sales") + sumBy(y, "inc", "Other Income");
-
-      const banner = $("#reconBanner");
-      banner.className = "banner " + (sum1099 > grossSales ? "warn" : "ok");
-      banner.innerHTML = sum1099 > grossSales
-        ? `<strong>Reconciliation Warning (${y}):</strong> Your logged 1099s total <strong>${money(sum1099)}</strong>, which is higher than your logged business income (<strong>${money(grossSales)}</strong>). Make sure all 1099 payments are also recorded in your Transactions tab.`
-        : `<strong>Reconciliation Check (${y}):</strong> Logged 1099s total <strong>${money(sum1099)}</strong> vs. logged business income of <strong>${money(grossSales)}</strong>. Your reported gross income covers all logged 1099 forms.`;
-
-      if (!state.forms1099.length) {
-        const tr = el("tr");
-        const td = el("td", "No 1099 forms logged yet.", "mut");
-        td.colSpan = 7;
-        tr.appendChild(td);
-        tb.appendChild(tr);
-        return;
-      }
-
-      state.forms1099.slice().sort((a, b) => b.year - a.year).forEach(f => {
-        const tr = el("tr");
-        tr.append(
-          el("td", String(f.year)),
-          el("td", f.type),
-          el("td", f.payer),
-          el("td", money(f.amt), "n inc"),
-          el("td", money(f.wh || 0), "n"),
-          el("td", [f.tin && ("TIN: ***" + f.tin), f.note].filter(Boolean).join(" · "))
-        );
-        const td = el("td");
-        const b = el("button", "Delete");
-        b.type = "button";
-        b.onclick = () => {
-          state.forms1099 = state.forms1099.filter(x => x.id !== f.id);
-          saveState();
-          render1099s();
-          renderWorksheet();
-          showToast("1099 deleted");
-        };
-        td.appendChild(b);
-        tr.appendChild(td);
-        tb.appendChild(tr);
-      });
-    }
-
-    /* EVENT HANDLERS */
-    $("#type").onchange = fillCats;
-
-    $("#photo").onchange = e => {
-      const file = e.target.files && e.target.files[0];
-      if (!file) {
-        $("#photoHint").textContent = "";
-        return;
-      }
-      $("#photoHint").textContent = "Attached: " + file.name;
-      const lower = file.name.toLowerCase();
-      if (lower.includes("1099")) {
-        $("#type").value = "inc";
-        fillCats();
-        $("#cat").value = "Gross Receipts / Sales";
-        if (!$("#desc").value) $("#desc").value = "1099 income (" + file.name.replace(/\.[^.]+$/, "") + ")";
-      } else {
-        $("#type").value = "exp";
-        fillCats();
-        if (!$("#rc").value) $("#rc").value = "R" + String(state.rows.length + 1).padStart(3, "0");
-      }
-    };
-
-    $("#f").onsubmit = e => {
-      e.preventDefault();
-      const file = $("#photo").files && $("#photo").files[0];
-      const entry = {
-        id: String(Date.now()),
-        date: $("#date").value,
-        type: $("#type").value,
-        cat: $("#cat").value,
-        amt: +$("#amt").value || 0,
-        desc: $("#desc").value.trim(),
-        mi: +$("#mi").value || 0,
-        dest: $("#dest").value.trim(),
-        why: $("#why").value.trim(),
-        rc: $("#rc").value.trim(),
-        pay: $("#pay").value,
-        cl: $("#cl").value.trim(),
-        photoName: file ? file.name : ""
-      };
-      state.rows.push(entry);
-      saveState();
-
-      const entryYear = +entry.date.slice(0, 4);
-      fillYears();
-      $("#ylog").value = String(entryYear);
-      render();
-
-      ["#amt", "#desc", "#mi", "#dest", "#why", "#rc", "#cl", "#photo"].forEach(sel => {
-        $(sel).value = "";
-      });
-      $("#photoHint").textContent = "";
-      showToast("Entry added");
-    };
-
-    $("#fast").onsubmit = e => {
-      e.preventDefault();
-      state.assets.push({
-        id: String(Date.now()),
-        date: $("#a-date").value,
-        desc: $("#a-desc").value.trim(),
-        cat: $("#a-cat").value,
-        cost: +$("#a-cost").value || 0,
-        pct: Math.min(100, Math.max(1, +$("#a-pct").value || 100)),
-        method: $("#a-method").value,
-        note: $("#a-note").value.trim()
-      });
-      saveState();
-      renderAssets();
-      ["#a-desc", "#a-cost", "#a-note"].forEach(sel => $(sel).value = "");
-      $("#a-pct").value = "100";
-      showToast("Asset added");
-    };
-
-    $("#f99").onsubmit = e => {
-      e.preventDefault();
-      state.forms1099.push({
-        id: String(Date.now()),
-        year: +$("#n-year").value || thisYear,
-        type: $("#n-type").value,
-        payer: $("#n-payer").value.trim(),
-        amt: +$("#n-amt").value || 0,
-        wh: +$("#n-wh").value || 0,
-        tin: $("#n-tin").value.trim(),
-        note: $("#n-note").value.trim()
-      });
-      saveState();
-      render();
-      ["#n-payer", "#n-amt", "#n-tin", "#n-note"].forEach(sel => $(sel).value = "");
-      $("#n-wh").value = "0";
-      showToast("1099 added");
-    };
-
-    $("#fm").oninput = () => {
-      state.cfg = {
-        rate: +$("#rate").value || 0,
-        home: +$("#home").value || 0,
-        off: +$("#off").value || 0
-      };
-      saveState();
-      renderSummary();
-      renderWorksheet();
-    };
-
-    $("#ylog").onchange = e => syncYearSelectors(e.target.value);
-    $("#ysum").onchange = e => syncYearSelectors(e.target.value);
-    $("#yttx").onchange = e => syncYearSelectors(e.target.value);
-
-    const tabs = [
-      ["t-log", "log"],
-      ["t-sum", "sum"],
-      ["t-ttx", "ttx"],
-      ["t-ast", "ast"],
-      ["t-1099", "f1099"]
-    ];
-
-    function showTab(activeId) {
-      tabs.forEach(([btnId, secId]) => {
-        $("#" + btnId).classList.toggle("on", secId === activeId);
-        $("#" + secId).classList.toggle("hide", secId !== activeId);
-      });
-      render();
-    }
-
-    tabs.forEach(([btnId, secId]) => {
-      $("#" + btnId).onclick = () => showTab(secId);
-    });
-
-    /* CSV & JSON BACKUP */
-    $("#csv").onclick = () => {
-      const y = +$("#ylog").value || thisYear;
-      const q = v => '"' + String(v == null ? "" : v).replace(/"/g, '""') + '"';
-      const header = ["Date", "Description", "Type", "Category", "Amount", "Miles", "Destination", "Drive purpose", "Receipt", "Payment", "Client"];
-      const filtered = state.rows.filter(r => +r.date.slice(0, 4) === y);
-      const csvData = [header.map(q).join(",")]
-        .concat(filtered.map(r => [
-          r.date, r.desc, r.type === "inc" ? "Income" : "Expense", r.cat,
-          r.amt, r.mi, r.dest, r.why, r.rc, r.pay, r.cl
-        ].map(q).join(",")))
-        .join("\n");
-
-      const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "schedule-c-" + y + ".csv";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      showToast("Downloaded CSV for " + y);
-    };
-
-    $("#exportJson").onclick = () => {
-      const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "music-schedule-c-backup-" + new Date().toISOString().slice(0, 10) + ".json";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      showToast("Backup JSON exported");
-    };
-
-    $("#importJsonBtn").onclick = () => $("#importJsonFile").click();
-
-    $("#importJsonFile").onchange = e => {
-      const file = e.target.files && e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = ev => {
-        try {
-          const imported = JSON.parse(ev.target.result);
-          if (imported && Array.isArray(imported.rows)) {
-            state.rows = imported.rows;
-            state.assets = imported.assets || [];
-            state.forms1099 = imported.forms1099 || [];
-            state.cfg = { ...state.cfg, ...(imported.cfg || {}) };
-            saveState();
-            setCfgInputs();
-            render();
-            showToast("Backup restored (" + state.rows.length + " entries)");
-          } else {
-            showToast("Invalid backup file");
-          }
-        } catch (err) {
-          showToast("Could not read backup file");
-        }
-        e.target.value = "";
-      };
-      reader.readAsText(file);
-    };
-
-    /* MOBILE KEYBOARD VISIBILITY HELPER */
-    document.addEventListener("focusin", e => {
-      const target = e.target;
-      if (target && (target.tagName === "INPUT" || target.tagName === "SELECT")) {
-        const container = target.closest(".field") || target;
-        setTimeout(() => {
-          container.scrollIntoView({ behavior: "smooth", block: "center" });
-        }, 280);
-      }
-    });
-
-    /* INITIALIZE */
-    loadState();
-    fillCats();
-    $("#date").valueAsDate = new Date();
-    $("#a-date").valueAsDate = new Date();
-    $("#n-year").value = thisYear;
-    setCfgInputs();
-    render();
-  </script>
-</body>
-</html>
+        <div class="form-group" id="txCategoryGroup">
+          <label for="txCategory">Schedule C Category
