@@ -7,7 +7,7 @@
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17191c;--fg:#eceff1;--mut:#9aa5ad;--line:#333a40;--card:#22262b;--acc:#7aa7e6;--grn:#6fcf97;--red:#f08c8c}}
 :root[data-theme="light"]{color-scheme:light}
 :root[data-theme="dark"]{--bg:#17191c;--fg:#eceff1;--mut:#9aa5ad;--line:#333a40;--card:#22262b;--acc:#7aa7e6;--grn:#6fcf97;--red:#f08c8c;color-scheme:dark}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
 main{max-width:1000px;margin:0 auto;padding:16px}
 h1{font-size:20px;margin:0 0 4px}h2{font-size:16px;margin:20px 0 8px}
@@ -60,7 +60,7 @@ table{min-width:0}
 #log table{min-width:0}
 #rows td:not(.c-desc){white-space:normal}
 #rows td.c-act{padding-top:6px}
-.c-line .ld{min-width:58px;white-space:nowrap}
+.c-line{font-size:14px}.c-line .ld{min-width:58px;white-space:nowrap}
 .c-line .lt{min-width:54px;white-space:nowrap}
 .c-line .la{font-weight:700;white-space:nowrap}
 .c-line .lc{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--mut)}
