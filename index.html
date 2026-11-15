@@ -68,8 +68,9 @@ table{min-width:0}
 .c-line{display:none}
 #log table{min-width:1000px}
 #rows td:not(.c-desc){white-space:nowrap}
-#rows tr.lastrow{background:rgba(128,128,128,.18)}
-.ttrow.lastcard{background:rgba(128,128,128,.18);border-radius:8px}
+#rows tr.lastrow{background:rgba(128,128,128,.34);font-weight:600}
+.ttrow.lastcard{background:rgba(128,128,128,.34);border-radius:8px}
+.lasttag{font-weight:700;font-size:12px;letter-spacing:.03em;text-transform:uppercase}
 </style></head>
 <body><main>
 <div class="row" style="justify-content:space-between;flex-wrap:nowrap"><h1>Music Business Schedule C Tracker</h1><button id="theme" type="button"></button></div>
@@ -241,6 +242,7 @@ function log(){
     const ln=c("","c-line"),dd=r.date.slice(5,7)+"/"+r.date.slice(8,10)+"/"+r.date.slice(2,4);
     ln.append(el("span",dd,"ld"),el("span",inc?"Income":"Expense","lt "+(inc?"inc":"exp")),el("span",money(r.amt),"la"),el("span",r.cl||"","lc"));
     tr.append(ln);tr.onclick=()=>tr.classList.toggle("open");tb.append(tr);
+    if(li===0){tr.children[1].append(el("span"," \u00b7 Latest entry","lasttag"));ln.children[3].append(el("span"," \u00b7 Latest","lasttag"))}
   });
 }
 async function del(r){
@@ -364,7 +366,7 @@ function assetsView(){
     let cum=0;for(let k=py;k<=Math.min(y,sy);k++)cum+=dep(a,k);
     const d=dep(a,y);tot+=d;
     const r=el('div',null,'ttrow'),m=el('div',null,'m');
-    if(ai===0)r.classList.add('lastcard');
+    if(ai===0){r.classList.add('lastcard');m.prepend(el('div','\u2605 Latest entry','lasttag'))}
     m.append(el('div',a.name+' ('+AT[a.t][0]+')'));
     m.append(el('div','Placed in service '+a.date+' \u00b7 cost '+money(a.cost)+' \u00b7 '+a.biz+'% business \u00b7 '+(a.method==='full'?'all in year 1':'spread over '+AT[a.t][1]+'-year class'),'mut'));
     m.append(el('div','Deducted so far '+money(cum)+' \u00b7 remaining basis '+money(y>=sy?0:Math.max(0,bs-cum)),'mut'));
@@ -397,7 +399,7 @@ function f99View(){
   (flist.length?[flist[flist.length-1]].concat(flist.slice(0,-1)):flist).forEach((f,fi)=>{
     n++;const lg=logged(f),diff=f.amt-lg;
     const r=el('div',null,'ttrow'),m=el('div',null,'m');
-    if(fi===0)r.classList.add('lastcard');
+    if(fi===0){r.classList.add('lastcard');m.prepend(el('div','\u2605 Latest entry','lasttag'))}
     m.append(el('div',f.payer+' ('+f.form+')'));
     m.append(el('div','On the form: '+money(f.amt)+' \u00b7 logged from this payer: '+money(lg)+(diff>0.005?' \u00b7 not yet logged: '+money(diff):diff<-0.005?' \u00b7 you logged '+money(-diff)+' more than the form (fine if some payments were not reported)':' \u00b7 matches'),'mut'));
     if(f.form==='1099-K')m.append(el('div','A 1099-K shows gross payments before fees. Log the platform fees under Commissions and Fees.','mut'));
