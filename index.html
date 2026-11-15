@@ -71,7 +71,7 @@ table{min-width:0}
 </style></head>
 <body><main>
 <div class="row" style="justify-content:space-between;flex-wrap:nowrap"><h1>Music Business Schedule C Tracker</h1><button id="theme" type="button"></button></div>
-<div class="mut" id="status">Loading…</div>
+<div class="mut" id="status" style="color:#d32f2f;font-weight:600">● Syncing…</div>
 <nav><button id="t-log" class="on">Transactions</button><button id="t-sum">Annual summary</button><button id="t-tt">TurboTax worksheet</button><button id="t-as">Asset log</button><button id="t-f9">1099s</button></nav>
 
 <section id="log">
@@ -145,11 +145,22 @@ table{min-width:0}
 <script>
 (function(){
   var SCRIPT_URL="https://script.google.com/macros/s/AKfycbzzPYH4xkTFU6pB6pPA7r3Kg5jMt0LSwznXG-sv-R1LktRrbdTt4msNgo4_oHl7KiF8KQ/exec";
+  var syncN=0,syncBad=false;
+  function syncUI(){var s=document.getElementById("status");if(!s)return;
+    if(syncN>0){s.textContent="\u25CF Syncing\u2026";s.style.color="#d32f2f";s.style.fontWeight="600"}
+    else if(syncBad){s.textContent="\u25CF Sync failed - check connection, then reload";s.style.color="#d32f2f";s.style.fontWeight="600"}
+    else{s.textContent="\u25CF Synced";s.style.color="#2e7d32";s.style.fontWeight="600"}}
+  function syncBegin(){syncN++;syncUI()}
+  function syncEnd(ok){syncN=Math.max(0,syncN-1);if(ok===false)syncBad=true;else if(syncN===0)syncBad=false;syncUI()}
   var api=async function(op,col,id,obj){
-    var r=await fetch(SCRIPT_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({op:op,col:col,id:id,obj:obj})});
-    var j=JSON.parse(await r.text());
-    if(j&&j.error)throw new Error(j.error);
-    return j;
+    syncBegin();
+    try{
+      var r=await fetch(SCRIPT_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({op:op,col:col,id:id,obj:obj})});
+      var j=JSON.parse(await r.text());
+      if(j&&j.error)throw new Error(j.error);
+      syncEnd(true);
+      return j;
+    }catch(e){syncEnd(false);throw e}
   };
   var reg={};
   function watch(key,loader,wrap){
@@ -181,7 +192,7 @@ table{min-width:0}
 const EXP=[["Advertising","8"],["Car and Truck","9"],["Commissions and Fees","10"],["Contract Labor","11"],["Depletion","12"],["Depreciation","13"],["Employee Benefit Programs","14"],["Insurance","15"],["Mortgage Interest","16a"],["Other Interest","16b"],["Legal and Professional","17"],["Office Expense","18"],["Pension/Profit-Sharing","19"],["Rent - Vehicles/Equipment","20a"],["Rent - Other","20b"],["Repairs and Maintenance","21"],["Supplies","22"],["Taxes and Licenses","23"],["Travel","24a"],["Meals (50%)","24b"],["Utilities","25"],["Wages","26"],["Home Office","30"],["Other Expense","48"]];
 const INC=[["Gross Receipts / Sales","1"],["Returns and Allowances","2"],["Other Income","6"]];
 const $=s=>document.querySelector(s);
-function note(m){$("#status").textContent=m}
+function note(m){const s=$("#status");s.textContent=m;s.style.color="";s.style.fontWeight=""}
 function why(e){return e&&e.message?e.message:String(e||"")}
 const money=n=>(n<0?"-":"")+"$"+Math.abs(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
 let rows=[],cfg={rate:0.7,home:0,off:0},db=null,dl=null;
@@ -199,9 +210,8 @@ async function init(){
   try{dl=await claude.use("downloads")}catch(e){dl=null}
   
   if(db){
-    $("#status").dataset.ok=$("#status").textContent="Saved to your own Google Sheet (\"Schedule C Tracker data\" in your Drive). Edits made in the sheet appear here within a minute.";
     let first=true;
-    db.collection("tx").onSnapshot(s=>{rows=s.docs.map(d=>({id:d.id,...d.data()}));render();$("#status").textContent=$("#status").dataset.ok||$("#status").textContent;},e=>{$("#status").textContent="Could not load your data: "+why(e)+" Reload the page to retry."});
+    db.collection("tx").onSnapshot(s=>{rows=s.docs.map(d=>({id:d.id,...d.data()}));render();},e=>{note("Could not load your data: "+why(e)+" Reload the page to retry.")});
     db.doc("settings/main").onSnapshot(d=>{if(d.exists){cfg={...cfg,...d.data()};setCfg()}},()=>{});
     db.collection("assets").onSnapshot(s=>{AL=s.docs.map(d=>({id:d.id,...d.data()}));assetsView();worksheet()},()=>{});
     db.collection("f1099").onSnapshot(s=>{FL=s.docs.map(d=>({id:d.id,...d.data()}));fillYears();f99View();worksheet()},()=>{});
