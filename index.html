@@ -196,6 +196,7 @@ function note(m){const s=$("#status");s.textContent=m;s.style.color="";s.style.f
 function why(e){return e&&e.message?e.message:String(e||"")}
 const money=n=>(n<0?"-":"")+"$"+Math.abs(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
 let rows=[],cfg={rate:0.7,home:0,off:0},db=null,dl=null;
+let stickLast="rows";
 const LS="sc_tracker_v1";
 const thisYear=new Date().getFullYear();
 
@@ -228,7 +229,7 @@ function setCfg(){$("#rate").value=cfg.rate;$("#home").value=cfg.home;$("#off").
 function render(){fillYears();log();summary();worksheet();assetsView();f99View()}
 function log(){
   const y=+$("#ylog").value||thisYear,tb=$("#rows");tb.textContent="";
-  rows.filter(r=>+r.date.slice(0,4)===y).reverse().forEach(r=>{
+  rows.filter(r=>+r.date.slice(0,4)===y).forEach(r=>{
     const tr=el("tr"),c=(t,k)=>el("td",t,k),inc=r.type==="inc";
     tr.append(c(r.date,"c-date"),c(r.cl||"","c-cl"),
       c(inc?money(r.amt):"","n inc c-inc"),c(!inc?money(r.amt):"","n exp c-exp"),
@@ -239,6 +240,7 @@ function log(){
     ln.append(el("span",dd,"ld"),el("span",inc?"Income":"Expense","lt "+(inc?"inc":"exp")),el("span",money(r.amt),"la"),el("span",r.cl||"","lc"));
     tr.append(ln);tr.onclick=()=>tr.classList.toggle("open");tb.append(tr);
   });
+  if(stickLast==="rows"&&tb.lastElementChild){stickLast=null;tb.lastElementChild.scrollIntoView({block:"nearest"})}
 }
 async function del(r){
   
@@ -249,6 +251,7 @@ $("#type").onchange=fillCats;
 $("#f").onsubmit=async e=>{
   e.preventDefault();
   const r={date:$("#date").value,type:$("#type").value,cat:$("#cat").value,amt:+$("#amt").value,desc:$("#desc").value.trim(),mi:+$("#mi").value||0,dest:$("#dest").value.trim(),rk:$("#rk").value,pay:$("#pay").value,cl:clVal()};
+  stickLast="rows";
   if(db){try{await db.collection("tx").add(r)}catch(err){note("Could not save. "+why(err));return}}
   else{r.id=String(Date.now());rows.push(r);saveLocal();render()}
   $("#f").reset();fillCats();clSync();
@@ -339,7 +342,7 @@ function assetsView(){
   const y=+$('#yas').value||thisYear,box=$('#abox');box.textContent='';
   const sa=$('#sa'),cur=sa.value;sa.textContent='';AL.forEach(a=>{const o=el('option',a.name);o.value=a.id;sa.append(o)});if(cur)sa.value=cur;
   let tot=0,gl=0,n=0;
-  AL.filter(a=>+a.date.slice(0,4)<=y).reverse().forEach(a=>{
+  AL.filter(a=>+a.date.slice(0,4)<=y).forEach(a=>{
     n++;const py=+a.date.slice(0,4),sy=a.sold?+a.sold.date.slice(0,4):9999,bs=a.cost*a.biz/100;
     let cum=0;for(let k=py;k<=Math.min(y,sy);k++)cum+=dep(a,k);
     const d=dep(a,y);tot+=d;
@@ -405,7 +408,7 @@ function f99View(){
   const y=+$('#y99').value||thisYear,box=$('#b99');box.textContent='';
   $('#y99i').value=$('#y99i').value||thisYear-1;
   let n=0;
-  FL.filter(f=>+f.year===y).reverse().forEach(f=>{
+  FL.filter(f=>+f.year===y).forEach(f=>{
     n++;const lg=logged(f),diff=f.amt-lg;
     const r=el('div',null,'ttrow'),m=el('div',null,'m');
     m.append(el('div',f.payer+' ('+f.form+')'));
