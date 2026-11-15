@@ -68,6 +68,8 @@ table{min-width:0}
 .c-line{display:none}
 #log table{min-width:1000px}
 #rows td:not(.c-desc){white-space:nowrap}
+#rows tr.lastrow{background:rgba(128,128,128,.18)}
+.ttrow.lastcard{background:rgba(128,128,128,.18);border-radius:8px}
 </style></head>
 <body><main>
 <div class="row" style="justify-content:space-between;flex-wrap:nowrap"><h1>Music Business Schedule C Tracker</h1><button id="theme" type="button"></button></div>
@@ -87,6 +89,7 @@ table{min-width:0}
 <label>Business miles<small>Total business miles driven for this trip (round trip). Leave blank if none</small><input type="number" id="mi" step="0.1" min="0"></label>
 <label>Destination<small>Where you drove, e.g. Jazz Club Downtown</small><input id="dest"></label>
 <div class="wide row"><button class="pri" type="submit">Add entry</button><span class="mut">Year is taken from the date.</span></div>
+<div class="wide" id="fwarn" style="color:#d32f2f;font-weight:600"></div>
 </form>
 <div class="row" style="margin-top:14px"><label>Year <select id="ylog"></select></label><button id="csv">Download CSV</button></div>
 <div class="scroll"><table><thead><tr><th>Date</th><th>Client / Vendor</th><th class="n">Income</th><th class="n">Expense</th><th>Category</th><th>Payment method</th><th>Receipt kept</th><th class="n">Miles</th><th>Destination</th><th>Description</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
@@ -106,7 +109,6 @@ table{min-width:0}
 </section>
 <section id="tt" class="hide">
 <div class="row"><label>Tax year <select id="ytt"></select></label><label class="row"><input type="checkbox" id="ttall"> Show $0 lines</label></div>
-<details id="ckd" open style="margin:10px 0"><summary id="cksum" style="cursor:pointer;font-weight:700">Review before you file</summary><p class="mut">These are prompts, not errors. Dismiss an item if it is fine as it is (for example, a cash lesson with no receipt). Dismissed items stay hidden on this device only.</p><div id="ckbox"></div></details>
 <p class="mut" id="ttprog"></p>
 <div id="ttbox"></div>
 <p class="mut">Lines follow Schedule C order. TurboTax may group some expenses on different screens, so use its search box to jump to each one. Tick a line once you have entered it; ticks are saved on this device only. This is a record-keeping aid, not tax advice.</p>
@@ -196,7 +198,6 @@ function note(m){const s=$("#status");s.textContent=m;s.style.color="";s.style.f
 function why(e){return e&&e.message?e.message:String(e||"")}
 const money=n=>(n<0?"-":"")+"$"+Math.abs(n).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
 let rows=[],cfg={rate:0.7,home:0,off:0},db=null,dl=null;
-let stickLast="rows";
 const LS="sc_tracker_v1";
 const thisYear=new Date().getFullYear();
 
@@ -229,8 +230,9 @@ function setCfg(){$("#rate").value=cfg.rate;$("#home").value=cfg.home;$("#off").
 function render(){fillYears();log();summary();worksheet();assetsView();f99View()}
 function log(){
   const y=+$("#ylog").value||thisYear,tb=$("#rows");tb.textContent="";
-  rows.filter(r=>+r.date.slice(0,4)===y).forEach(r=>{
-    const tr=el("tr"),c=(t,k)=>el("td",t,k),inc=r.type==="inc";
+  const list=rows.filter(r=>+r.date.slice(0,4)===y);
+  (list.length?[list[list.length-1]].concat(list.slice(0,-1)):list).forEach((r,li)=>{
+    const tr=el("tr"),c=(t,k)=>el("td",t,k),inc=r.type==="inc";if(li===0)tr.className="lastrow";
     tr.append(c(r.date,"c-date"),c(r.cl||"","c-cl"),
       c(inc?money(r.amt):"","n inc c-inc"),c(!inc?money(r.amt):"","n exp c-exp"),
       c(r.cat,"c-cat"),c(r.pay||"","c-pay"),c(r.rk||(r.rc?"#"+r.rc:""),"c-rk"),
@@ -240,7 +242,6 @@ function log(){
     ln.append(el("span",dd,"ld"),el("span",inc?"Income":"Expense","lt "+(inc?"inc":"exp")),el("span",money(r.amt),"la"),el("span",r.cl||"","lc"));
     tr.append(ln);tr.onclick=()=>tr.classList.toggle("open");tb.append(tr);
   });
-  if(stickLast==="rows"&&tb.lastElementChild){stickLast=null;tb.lastElementChild.scrollIntoView({block:"nearest"})}
 }
 async function del(r){
   
@@ -248,13 +249,28 @@ async function del(r){
   else{rows=rows.filter(x=>x.id!==r.id);saveLocal();render()}
 }
 $("#type").onchange=fillCats;
+function entryWarns(r){
+  const w=[],today=new Date().toISOString().slice(0,10),yr=+r.date.slice(0,4);
+  if(r.type==="exp"&&r.amt>=75&&r.rk!=="Yes")w.push("An expense of $75 or more needs a receipt. If you have one, set 'Receipt kept?' to Yes.");
+  if(r.mi>0&&!r.dest)w.push("You entered miles but no destination. A mileage record needs where you went (and the purpose in Description).");
+  if(r.date>today)w.push("This date is in the future. Check the date.");
+  if(r.type==="exp"&&r.amt>2500&&["Supplies","Office Expense","Other Expense"].includes(r.cat))w.push("Over $2,500 - this may belong in the Asset log (depreciation) instead of a regular expense.");
+  if(r.type==="inc"&&(r.pay==="Cash"||r.pay==="Check")&&(!r.cl||r.cl==="Others"))w.push("Cash or check income with no client name. Choose the client or type the name.");
+  const yrMiles=rows.filter(x=>+x.date.slice(0,4)===yr).reduce((a,x)=>a+(x.mi||0),0);
+  if(r.type==="exp"&&r.cat==="Car and Truck"&&(r.mi>0||yrMiles>0))w.push("Actual car costs and business miles are both being recorded. TurboTax uses one method (standard mileage or actual costs), not both.");
+  else if(r.mi>0&&rows.some(x=>+x.date.slice(0,4)===yr&&x.type==="exp"&&x.cat==="Car and Truck"))w.push("Actual car costs and business miles are both being recorded. TurboTax uses one method (standard mileage or actual costs), not both.");
+  if(rows.some(x=>x.date===r.date&&x.type===r.type&&x.cat===r.cat&&x.amt===r.amt&&(x.desc||"")===r.desc))w.push("Possible duplicate - same date, category, amount and description as an entry already in the list.");
+  return w;
+}
 $("#f").onsubmit=async e=>{
   e.preventDefault();
   const r={date:$("#date").value,type:$("#type").value,cat:$("#cat").value,amt:+$("#amt").value,desc:$("#desc").value.trim(),mi:+$("#mi").value||0,dest:$("#dest").value.trim(),rk:$("#rk").value,pay:$("#pay").value,cl:clVal()};
-  stickLast="rows";
+  const warns=entryWarns(r),sig=JSON.stringify(r),fw=$("#fwarn");
+  if(warns.length&&$("#f").dataset.warn!==sig){$("#f").dataset.warn=sig;fw.textContent="";warns.forEach(t=>fw.append(el("div","\u26a0 "+t)));fw.append(el("div","Fix it above, or click Add entry again to save it anyway."));return}
+  $("#f").dataset.warn="";fw.textContent="";
   if(db){try{await db.collection("tx").add(r)}catch(err){note("Could not save. "+why(err));return}}
   else{r.id=String(Date.now());rows.push(r);saveLocal();render()}
-  $("#f").reset();fillCats();clSync();
+  $("#f").reset();fillCats();clSync();$("#date").valueAsDate=new Date();
 };
 $("#ylog").onchange=log;$("#ysum").onchange=summary;
 
@@ -319,7 +335,7 @@ function worksheet(){
     const b=el("button","Copy");b.onclick=()=>cp(b,it.miles?String(Math.round(it.v*10)/10):plain(it.v));r.append(b);
     box.append(r);
   });
-  $("#ttprog").textContent=total?got+" of "+total+" lines marked as entered.":"No amounts for this year yet.";checks(y);
+  $("#ttprog").textContent=total?got+" of "+total+" lines marked as entered.":"No amounts for this year yet.";
 }
 $("#ytt").onchange=worksheet;$("#ttall").onchange=worksheet;
 let AL=[];
@@ -342,11 +358,13 @@ function assetsView(){
   const y=+$('#yas').value||thisYear,box=$('#abox');box.textContent='';
   const sa=$('#sa'),cur=sa.value;sa.textContent='';AL.forEach(a=>{const o=el('option',a.name);o.value=a.id;sa.append(o)});if(cur)sa.value=cur;
   let tot=0,gl=0,n=0;
-  AL.filter(a=>+a.date.slice(0,4)<=y).forEach(a=>{
+  const alist=AL.filter(a=>+a.date.slice(0,4)<=y);
+  (alist.length?[alist[alist.length-1]].concat(alist.slice(0,-1)):alist).forEach((a,ai)=>{
     n++;const py=+a.date.slice(0,4),sy=a.sold?+a.sold.date.slice(0,4):9999,bs=a.cost*a.biz/100;
     let cum=0;for(let k=py;k<=Math.min(y,sy);k++)cum+=dep(a,k);
     const d=dep(a,y);tot+=d;
     const r=el('div',null,'ttrow'),m=el('div',null,'m');
+    if(ai===0)r.classList.add('lastcard');
     m.append(el('div',a.name+' ('+AT[a.t][0]+')'));
     m.append(el('div','Placed in service '+a.date+' \u00b7 cost '+money(a.cost)+' \u00b7 '+a.biz+'% business \u00b7 '+(a.method==='full'?'all in year 1':'spread over '+AT[a.t][1]+'-year class'),'mut'));
     m.append(el('div','Deducted so far '+money(cum)+' \u00b7 remaining basis '+money(y>=sy?0:Math.max(0,bs-cum)),'mut'));
@@ -367,39 +385,6 @@ $('#fa').onsubmit=async e=>{e.preventDefault();await saveA({name:$('#an').value.
 $('#fs').onsubmit=async e=>{e.preventDefault();const id=$('#sa').value,a=AL.find(x=>x.id===id);if(!a)return;const {id:_i,...r}=a;r.sold={date:$('#sd').value,price:+$('#sp').value};await saveA(r,id)};
 $('#sx').onclick=async()=>{const id=$('#sa').value,a=AL.find(x=>x.id===id);if(!a||!a.sold)return;const {id:_i,sold:_s,...r}=a;await saveA(r,id)};
 $('#yas').onchange=assetsView;
-function checks(y){
-  let ok={};try{ok=JSON.parse(localStorage.getItem('ck_ok')||'{}')}catch(e){}
-  const ys=rows.filter(r=>+r.date.slice(0,4)===y),L=[],today=new Date().toISOString().slice(0,10),seen={};
-  const add=(id,r,msg)=>{if(!ok[id])L.push({id,r,msg})};
-  const mi=ys.reduce((a,r)=>a+(r.mi||0),0);
-  ys.forEach(r=>{
-    if(r.mi&&!r.dest)add('m'+r.id,r,'Miles are recorded but the destination is missing. A mileage record needs the date, miles, place, and purpose (put the purpose in the description).');
-    if(r.type==='exp'&&r.cat==='Car and Truck'&&mi>0)add('c'+r.id,r,'Actual car costs and business miles are both recorded. Use one method (standard mileage or actual costs), not both.');
-    if(r.type==='exp'&&r.amt>=75&&r.rk!=='Yes'&&!(r.rc&&!r.rk))add('r'+r.id,r,'Expense of $75 or more and no receipt marked as kept. Keep a receipt or record for larger expenses.');
-    if(r.type==='exp'&&r.amt>2500&&['Supplies','Office Expense','Other Expense'].includes(r.cat))add('a'+r.id,r,'Large purchase. Items over about $2,500 may need to go in the Asset log (depreciation) instead of a regular expense.');
-    if(r.type==='inc'&&(r.pay==='Cash'||r.pay==='Check')&&!r.cl)add('p'+r.id,r,'Cash or check income with no client name.');
-    if(r.date>today)add('f'+r.id,r,'This entry is dated in the future.');
-    const k=[r.date,r.type,r.cat,r.amt,(r.desc||'').toLowerCase()].join('|');
-    if(seen[k])add('d'+r.id,r,'Possible duplicate of another entry (same date, category, amount, and description).');
-    seen[k]=1;
-  });
-  if(mi>0&&!cfg.rate)add('g1'+y,null,'Business miles are recorded but no mileage rate is set (Annual summary tab).');
-  if(cfg.off>0&&ys.some(r=>r.type==='exp'&&r.cat==='Home Office'))add('g2'+y,null,'Home office appears in your expenses and studio square footage is also set. Avoid deducting it twice.');
-  if(ys.some(r=>r.type==='exp'&&r.cat==='Depreciation')&&assetDep(y)>0)add('g3'+y,null,'Depreciation appears in both your transactions and the Asset log. Avoid counting an asset twice.');
-  if(ys.length&&!ys.some(r=>r.type==='inc'))add('g4'+y,null,'No income is recorded for '+y+'.');
-  const box=$('#ckbox');box.textContent='';
-  L.forEach(it=>{
-    const d=el('div',null,'ttrow'),m=el('div',null,'m');
-    if(it.r)m.append(el('div',it.r.date+' \u00b7 '+it.r.desc+' \u00b7 '+money(it.r.amt)));
-    m.append(el('div',it.msg,'mut'));
-    const b=el('button','Dismiss');b.onclick=()=>{ok[it.id]=1;try{localStorage.setItem('ck_ok',JSON.stringify(ok))}catch(e){}worksheet()};
-    d.append(m,b);box.append(d);
-  });
-  const n=L.length;
-  $('#cksum').textContent=n?'Review before you file ('+n+')':'Review before you file: nothing to flag';
-  if(!n)$('#ckd').open=false;
-  $('#t-tt').textContent='TurboTax worksheet'+(n?' ('+n+')':'');
-}
 let FL=[];
 function nm(s){return (s||'').toLowerCase().replace(/\b(llc|inc|co|corp|ltd|the)\b/g,'').replace(/[^a-z0-9]/g,'')}
 function t99(y){return FL.filter(f=>+f.year===y).reduce((s,f)=>s+f.amt,0)}
@@ -408,9 +393,11 @@ function f99View(){
   const y=+$('#y99').value||thisYear,box=$('#b99');box.textContent='';
   $('#y99i').value=$('#y99i').value||thisYear-1;
   let n=0;
-  FL.filter(f=>+f.year===y).forEach(f=>{
+  const flist=FL.filter(f=>+f.year===y);
+  (flist.length?[flist[flist.length-1]].concat(flist.slice(0,-1)):flist).forEach((f,fi)=>{
     n++;const lg=logged(f),diff=f.amt-lg;
     const r=el('div',null,'ttrow'),m=el('div',null,'m');
+    if(fi===0)r.classList.add('lastcard');
     m.append(el('div',f.payer+' ('+f.form+')'));
     m.append(el('div','On the form: '+money(f.amt)+' \u00b7 logged from this payer: '+money(lg)+(diff>0.005?' \u00b7 not yet logged: '+money(diff):diff<-0.005?' \u00b7 you logged '+money(-diff)+' more than the form (fine if some payments were not reported)':' \u00b7 matches'),'mut'));
     if(f.form==='1099-K')m.append(el('div','A 1099-K shows gross payments before fees. Log the platform fees under Commissions and Fees.','mut'));
