@@ -68,8 +68,16 @@ table{min-width:0}
 .c-line{display:none}
 #log table{min-width:1000px}
 #rows td:not(.c-desc){white-space:nowrap}
-#rows tr.lastrow{background:rgba(128,128,128,.34);font-weight:600}
-.ttrow.lastcard{background:rgba(128,128,128,.34);border-radius:8px}
+#rows tr.lastrow{font-weight:600}
+.ttrow.lastcard{border:2px solid var(--fg);border-radius:8px;padding-left:8px;padding-right:8px}
+@media (min-width:641px){
+#rows tr.lastrow td{border-top:2px solid var(--fg);border-bottom:2px solid var(--fg)}
+#rows tr.lastrow td:first-of-type{border-left:2px solid var(--fg)}
+#rows tr.lastrow td.c-act{border-right:2px solid var(--fg)}
+}
+@media (max-width:640px){
+#log tr.lastrow{border:2px solid var(--fg)}
+}
 .lasttag{font-weight:700;font-size:12px;letter-spacing:.03em;text-transform:uppercase}
 </style></head>
 <body><main>
